@@ -1,54 +1,54 @@
 import React, { Component } from 'react';
 import {
-  Canvas,
-  Circle,
-  Image,
-  Path,
-  Text
-} from 'react-fabricjs';
+  fabric
+} from 'fabric';
 import styles from './App.scss';
 
 export default class App extends Component {
+  componentDidMount() {
+    const canvas = new fabric.Canvas('c', {
+      height: window.innerHeight,
+      width: 1000 * 5
+    });
+    // let's pretend it's an async call to remote API that gives us
+    const images = [
+      'https://placeholdit.imgix.net/~text?txtsize=75&txt=1000x1000&w=1000&h=1000',
+      'https://placeholdit.imgix.net/~text?txtsize=75&txt=1000x1000&w=1000&h=1000',
+      'https://placeholdit.imgix.net/~text?txtsize=75&txt=1000x1000&w=1000&h=1000',
+      'https://placeholdit.imgix.net/~text?txtsize=75&txt=1000x1000&w=1000&h=1000',
+      'https://placeholdit.imgix.net/~text?txtsize=75&txt=1000x1000&w=1000&h=1000'
+    ].map((url, index) => {
+      fabric.Image.fromURL(url, image => {
+        canvas.add(image, {
+          top: 0,
+          left: index * 1000
+        });
+      });
+    });
+
+    var rect = new fabric.Rect({
+      left: 100,
+      top: 100,
+      fill: 'red',
+      width: 20,
+      height: 20
+    });
+
+    // "add" rectangle onto canvas
+    canvas.add(rect);
+
+    console.log(images);
+    canvas.renderAll();
+  }
+
   render() {
     return (
       <div className={styles.app}>
-        <Canvas
-          ref="canvas"
-          width="1000"
-          height="1000">
-          <Circle
-            ref="circle"
-            radius={20}
-            left={100}
-            top={50}
-            stroke="green" />
-          <Image
-            ref="image"
-            imgElement={document.getElementById('my-image')}
-            width={100}
-            height={100} />
-          <Image
-            src="http://i.imgur.com/jZsNUCi.jpg"
-            width={300}
-            height={300}
-            left={0}
-            top={500} />
-          <Path
-            path="M 0 0 L 300 100 L 200 300 z"
-            fill="red"
-            stroke="green"
-            strokeWidth={10}
-            opacity={0.5} />
-          <Text
-            text="Click me"
-            left={0}
-            top={200}
-            shadow="rgba(0,0,0,0.3) 5px 5px 5px"
-            stroke="#ff1318"
-            strokeWidth={1}
-            fontStyle="italic"
-            fontFamily="Hoefler Text" />
-        </Canvas>
+        <canvas
+          className={styles.canvas}
+          id="c">
+          YAYAY!
+        </canvas>
       </div>
     );
   }
