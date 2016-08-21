@@ -39,7 +39,7 @@ export default class App extends Component {
       ctx.clearRect(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
 
       images.map((image, index) => {
-        ctx.drawImage(image, index * 1000, 0);
+        ctx.drawImage(image, index * 1010, 0);
       });
     }
   }
@@ -158,22 +158,22 @@ export default class App extends Component {
       height,
       width,
     } = this.canvas;
+    const kickOut = () => {
+      this.trackTransforms();
+      this.redraw();
+    };
+
     this.canvas.lastX = canvas.width / 2;
     this.canvas.lastY = canvas.height / 2;
     this.canvas.scaleFactor = 1.1;
-
     canvas.width = width;
     canvas.height = height;
-
-    this.trackTransforms();
-    this.redraw();
 
     canvas.addEventListener('mousedown', (evt) => {
       const lastX = evt.offsetX || (evt.pageX - canvas.offsetLeft);
       const lastY = evt.offsetY || (evt.pageY - canvas.offsetTop);
       const dragStart = ctx.transformedPoint(lastX, lastY);
 
-      document.body.style.mozUserSelect = document.body.style.webkitUserSelect = document.body.style.userSelect = 'none';
       this.canvas.lastX = lastX;
       this.canvas.lastY = lastY;
       this.canvas.dragStart = dragStart;
@@ -203,10 +203,8 @@ export default class App extends Component {
         this.zoom(evt.shiftKey ? -1 : 1 );
       }
     }, false);
-  }
 
-  componentDidUpdate() {
-    this.redraw();
+    window.addEventListener('load', kickOut);
   }
 
   render() {
@@ -221,10 +219,6 @@ export default class App extends Component {
               height: node.clientHeight,
               width: node.clientWidth
             };
-
-            console.log(this.canvas);
-            this.trackTransforms();
-            this.redraw();
           }}>
           YAYAY!
         </canvas>
