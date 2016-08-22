@@ -23,6 +23,68 @@ export default class App extends Component {
     };
   }
 
+  kickOut() {
+    const {
+      canvas,
+      ctx,
+      height,
+      width,
+    } = this.canvas;
+
+    this.canvas.lastX = canvas.width / 2;
+    this.canvas.lastY = canvas.height / 2;
+    this.canvas.scaleFactor = 1.1;
+    canvas.width = width;
+    canvas.height = height;
+
+    canvas.addEventListener('mousedown', event => {
+      const lastX = event.offsetX || (event.pageX - canvas.offsetLeft);
+      const lastY = event.offsetY || (event.pageY - canvas.offsetTop);
+      const dragStart = ctx.transformedPoint(lastX, lastY);
+
+      this.canvas.lastX = lastX;
+      this.canvas.lastY = lastY;
+      this.canvas.dragStart = dragStart;
+      this.canvas.dragged = false;
+    }, false);
+
+    canvas.addEventListener('mousemove', event => {
+      const lastX = event.offsetX || (event.pageX - canvas.offsetLeft);
+      const lastY = event.offsetY || (event.pageY - canvas.offsetTop);
+
+      this.canvas.lastX = lastX;
+      this.canvas.lastY = lastY;
+      this.canvas.dragged = true;
+
+      if (this.canvas.dragStart) {
+        const pt = ctx.transformedPoint(lastX, lastY);
+
+        ctx.translate(pt.x - this.canvas.dragStart.x, pt.y - this.canvas.dragStart.y);
+        this.redraw();
+      }
+    }, false);
+
+    canvas.addEventListener('mouseup', event => {
+      this.canvas.dragStart = null;
+
+      if (!this.canvas.dragged) {
+        this.zoom(event.shiftKey ? -1 : 1 );
+      }
+    }, false);
+
+    canvas.addEventListener('wheel', (event) => {
+      const {
+        ctx
+      } = this.canvas;
+
+      ctx.translate(event.wheelDeltaX, event.wheelDeltaY);
+      this.redraw();
+    });
+
+    this.trackTransforms();
+    this.redraw();
+  }
+
   redraw() {
     const {
       canvas,
@@ -37,7 +99,6 @@ export default class App extends Component {
       const p2 = ctx.transformedPoint(canvas.width, canvas.height);
 
       ctx.clearRect(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
-
       images.map((image, index) => {
         ctx.drawImage(image, index * 1010, 0);
       });
@@ -152,59 +213,7 @@ export default class App extends Component {
   }
 
   componentDidMount() {
-    const {
-      canvas,
-      ctx,
-      height,
-      width,
-    } = this.canvas;
-    const kickOut = () => {
-      this.trackTransforms();
-      this.redraw();
-    };
-
-    this.canvas.lastX = canvas.width / 2;
-    this.canvas.lastY = canvas.height / 2;
-    this.canvas.scaleFactor = 1.1;
-    canvas.width = width;
-    canvas.height = height;
-
-    canvas.addEventListener('mousedown', (evt) => {
-      const lastX = evt.offsetX || (evt.pageX - canvas.offsetLeft);
-      const lastY = evt.offsetY || (evt.pageY - canvas.offsetTop);
-      const dragStart = ctx.transformedPoint(lastX, lastY);
-
-      this.canvas.lastX = lastX;
-      this.canvas.lastY = lastY;
-      this.canvas.dragStart = dragStart;
-      this.canvas.dragged = false;
-    }, false);
-
-    canvas.addEventListener('mousemove', (evt) => {
-      const lastX = evt.offsetX || (evt.pageX - canvas.offsetLeft);
-      const lastY = evt.offsetY || (evt.pageY - canvas.offsetTop);
-
-      this.canvas.lastX = lastX;
-      this.canvas.lastY = lastY;
-      this.canvas.dragged = true;
-
-      if (this.canvas.dragStart) {
-        const pt = ctx.transformedPoint(lastX, lastY);
-
-        ctx.translate(pt.x - this.canvas.dragStart.x, pt.y - this.canvas.dragStart.y);
-        this.redraw();
-      }
-    }, false);
-
-    canvas.addEventListener('mouseup', (evt) => {
-      this.canvas.dragStart = null;
-
-      if (!this.canvas.dragged) {
-        this.zoom(evt.shiftKey ? -1 : 1 );
-      }
-    }, false);
-
-    window.addEventListener('load', kickOut);
+    window.addEventListener('load', () => this.kickOut());
   }
 
   render() {
