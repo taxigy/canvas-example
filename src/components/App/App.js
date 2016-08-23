@@ -97,7 +97,7 @@ export default class App extends Component {
 
       ctx.clearRect(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
       images.map((image, index) => {
-        ctx.drawImage(image, index * 1010, 0);
+        ctx.drawImage(image, index * 1000, 0);
       });
     }
   }
@@ -124,32 +124,62 @@ export default class App extends Component {
 
     ctx.save = () => {
       savedTransforms.push(xform.translate(0, 0));
-
-      return save.call(ctx);
+      save.call(ctx);
     };
 
     ctx.restore = () => {
       xform = savedTransforms.pop();
-
-      return restore.call(ctx);
+      restore.call(ctx);
     };
 
     ctx.scale = (sx, sy) => {
       xform = xform.scaleNonUniform(sx, sy);
-
-      return scale.call(ctx, sx, sy);
+      scale.call(ctx, sx, sy);
     };
 
     ctx.rotate = (radians) => {
       xform = xform.rotate(radians * 180 / Math.PI);
-
-      return rotate.call(ctx, radians);
+      rotate.call(ctx, radians);
     };
 
     ctx.translate = (dx, dy) => {
-      xform = xform.translate(dx, dy);
+      const {
+        left,
+        top,
+        contentWidth,
+        contentHeight,
+        width,
+        height,
+        zoom
+      } = this.canvas;
+      const next = {
+        left: left + dx,
+        top: top + dy
+      };
 
-      return translate.call(ctx, dx, dy);
+      if (next.left <= 0 && next.left >= zoom * (width - contentWidth)) {
+        this.canvas.left = next.left;
+        xform = xform.translate(dx, 0);
+
+        translate.call(ctx, dx, 0);
+      }
+
+      if (next.top <= 0 && next.top >= zoom * (height - contentHeight)) {
+        this.canvas.top = next.top;
+        xform = xform.translate(0, dy);
+
+        translate.call(ctx, 0, dy);
+      }
+
+      // if (next.top <= 0 && next.left <= 0) {
+      //   this.canvas.left = next.left;
+      //   this.canvas.top = next.top;
+      //   xform = xform.translate(dx, dy);
+
+      //   return translate.call(ctx, dx, dy);
+      // } else {
+      //   return translate.call(ctx, 0, 0);
+      // }
     };
 
     ctx.transform = (a, b, c, d, e, f) => {
@@ -222,7 +252,11 @@ export default class App extends Component {
               ctx: node.getContext('2d'),
               height: node.clientHeight,
               width: node.clientWidth,
-              zoom: 1
+              zoom: 1,
+              top: 0,
+              left: 0,
+              contentWidth: this.state.images.length * 1000,
+              contentHeight: 1000
             };
           }}>
           YAYAY!
