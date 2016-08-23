@@ -144,6 +144,7 @@ export default class App extends Component {
 
     ctx.translate = (dx, dy) => {
       const {
+        dragging,
         left,
         top,
         contentWidth,
@@ -157,29 +158,19 @@ export default class App extends Component {
         top: top + dy
       };
 
-      if (next.left <= 0 && next.left >= zoom * (width - contentWidth)) {
+      if (dragging && next.left <= 0 && next.left >= zoom * (width - contentWidth)) {
         this.canvas.left = next.left;
         xform = xform.translate(dx, 0);
 
         translate.call(ctx, dx, 0);
       }
 
-      if (next.top <= 0 && next.top >= zoom * (height - contentHeight)) {
+      if (dragging && next.top <= 0 && next.top >= zoom * (height - contentHeight)) {
         this.canvas.top = next.top;
         xform = xform.translate(0, dy);
 
         translate.call(ctx, 0, dy);
       }
-
-      // if (next.top <= 0 && next.left <= 0) {
-      //   this.canvas.left = next.left;
-      //   this.canvas.top = next.top;
-      //   xform = xform.translate(dx, dy);
-
-      //   return translate.call(ctx, dx, dy);
-      // } else {
-      //   return translate.call(ctx, 0, 0);
-      // }
     };
 
     ctx.transform = (a, b, c, d, e, f) => {
@@ -222,13 +213,12 @@ export default class App extends Component {
       lastY,
       zoom
     } = this.canvas;
-    console.log(typeof zoom, zoom);
     const minZoom = 1;
     const maxZoom = 2;
     const pt = ctx.transformedPoint(lastX, lastY);
-    const factor = zoom <= minZoom ? maxZoom : 1 / maxZoom;
+    const factor = zoom === minZoom ? maxZoom : 1 / maxZoom;
 
-    this.canvas.zoom = factor;
+    this.canvas.zoom = zoom === minZoom ? maxZoom : minZoom;
     ctx.translate(pt.x, pt.y);
     ctx.scale(factor, factor);
     ctx.translate(-pt.x, -pt.y);
