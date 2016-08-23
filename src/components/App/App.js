@@ -33,7 +33,6 @@ export default class App extends Component {
 
     this.canvas.lastX = canvas.width / 2;
     this.canvas.lastY = canvas.height / 2;
-    this.canvas.scaleFactor = 1.1;
     canvas.width = width;
     canvas.height = height;
 
@@ -64,22 +63,18 @@ export default class App extends Component {
       }
     }, false);
 
-    canvas.addEventListener('mouseup', event => {
+    canvas.addEventListener('mouseup', () => {
       this.canvas.dragStart = null;
+    }, false);
 
-      if (!this.canvas.dragged) {
-        this.zoom(event.shiftKey ? -1 : 1 );
-      }
+    canvas.addEventListener('dblclick', event => {
+      this.zoom(event.shiftKey ? -1 : 1);
     }, false);
 
     canvas.addEventListener('wheel', (event) => {
-      const {
-        ctx
-      } = this.canvas;
-
-      ctx.translate(event.wheelDeltaX, event.wheelDeltaY);
+      this.canvas.ctx.translate(event.wheelDeltaX / 4, event.wheelDeltaY / 4);
       this.redraw();
-    });
+    }, false);
 
     this.trackTransforms();
     this.redraw();
@@ -88,7 +83,9 @@ export default class App extends Component {
   redraw() {
     const {
       canvas,
-      ctx
+      ctx,
+      height,
+      width
     } = this.canvas;
 
     if (canvas && ctx) {
@@ -96,7 +93,7 @@ export default class App extends Component {
         images = []
       } = this.state;
       const p1 = ctx.transformedPoint(0, 0);
-      const p2 = ctx.transformedPoint(canvas.width, canvas.height);
+      const p2 = ctx.transformedPoint(width, height);
 
       ctx.clearRect(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
       images.map((image, index) => {
@@ -120,15 +117,8 @@ export default class App extends Component {
       transform,
       setTransform,
     } = ctx;
-    let xform = svg.createSVGMatrix();
-    // const save = ctx.save;
-    // const restore = ctx.restore;
-    // const scale = ctx.scale;
-    // const rotate = ctx.rotate;
-    // const translate = ctx.translate;
-    // const transform = ctx.transform;
-    // const setTransform = ctx.setTransform;
     const pt  = svg.createSVGPoint();
+    let xform = svg.createSVGMatrix();
 
     ctx.getTransform = () => xform;
 
@@ -195,25 +185,30 @@ export default class App extends Component {
     };
   }
 
-  zoom(clicks) {
+  zoom() {
     const {
       ctx,
-      scaleFactor,
       lastX,
-      lastY
+      lastY,
+      zoom
     } = this.canvas;
+    console.log(typeof zoom, zoom);
+    const minZoom = 1;
+    const maxZoom = 2;
     const pt = ctx.transformedPoint(lastX, lastY);
-    const factor = Math.pow(scaleFactor, clicks);
+    const factor = zoom <= minZoom ? maxZoom : 1 / maxZoom;
 
+    this.canvas.zoom = factor;
     ctx.translate(pt.x, pt.y);
     ctx.scale(factor, factor);
     ctx.translate(-pt.x, -pt.y);
-
     this.redraw();
   }
 
   componentDidMount() {
-    window.addEventListener('load', () => this.kickOut());
+    window.addEventListener('load', () => {
+      this.kickOut();
+    });
   }
 
   render() {
@@ -226,7 +221,8 @@ export default class App extends Component {
               canvas: node,
               ctx: node.getContext('2d'),
               height: node.clientHeight,
-              width: node.clientWidth
+              width: node.clientWidth,
+              zoom: 1
             };
           }}>
           YAYAY!
