@@ -11,10 +11,10 @@ export default class App extends Component {
     this.state = {
       images: [
         'https://placeholdit.imgix.net/~text?txtsize=75&txt=1000x1000&w=1000&h=1000',
-        'https://placeholdit.imgix.net/~text?txtsize=75&txt=1000x1000&w=1000&h=1000',
-        'https://placeholdit.imgix.net/~text?txtsize=75&txt=1000x1000&w=1000&h=1000',
-        'https://placeholdit.imgix.net/~text?txtsize=75&txt=1000x1000&w=1000&h=1000',
-        'https://placeholdit.imgix.net/~text?txtsize=75&txt=1000x1000&w=1000&h=1000'
+        'https://placeholdit.imgix.net/~text?txtsize=75&txt=900x900&w=900&h=900',
+        'https://placeholdit.imgix.net/~text?txtsize=75&txt=800x800&w=800&h=800',
+        'https://placeholdit.imgix.net/~text?txtsize=75&txt=700x700&w=700&h=700',
+        'https://placeholdit.imgix.net/~text?txtsize=75&txt=600x600&w=600&h=600'
       ].map(url => {
         const image = new Image;
         image.src = url;
@@ -144,7 +144,7 @@ export default class App extends Component {
 
     ctx.translate = (dx, dy) => {
       const {
-        dragging,
+        dragged,
         left,
         top,
         contentWidth,
@@ -158,18 +158,23 @@ export default class App extends Component {
         top: top + dy
       };
 
-      if (dragging && next.left <= 0 && next.left >= zoom * (width - contentWidth)) {
+      console.log(dragged, [left, next.left], [top, next.top]);
+
+      if (dragged && next.left <= 0 && next.left >= zoom * (width - contentWidth)) {
         this.canvas.left = next.left;
         xform = xform.translate(dx, 0);
-
         translate.call(ctx, dx, 0);
       }
 
-      if (dragging && next.top <= 0 && next.top >= zoom * (height - contentHeight)) {
+      if (dragged && next.top <= 0 && next.top >= zoom * (height - contentHeight)) {
         this.canvas.top = next.top;
         xform = xform.translate(0, dy);
-
         translate.call(ctx, 0, dy);
+      }
+
+      if (!dragged) {
+        xform = xform.translate(dx, dy);
+        translate.call(ctx, dx, dy);
       }
     };
 
