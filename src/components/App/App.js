@@ -110,7 +110,7 @@ export default class App extends Component {
       if (nextX > 0) {
         ctx.translate(-nextX, 0);
       } else if (nextX < width - this.canvas.contentWidth) {
-        ctx.translate(nextX - width + this.canvas.contentWidth, 0);
+        ctx.translate(-nextX - width + this.canvas.contentWidth, 0);
       }
 
       if (nextY > 0) {
@@ -168,7 +168,6 @@ export default class App extends Component {
         };
 
         ctx.drawImage(image, total, 0, next.width, next.height);
-        console.log(width, next.width, total);
 
         return total + next.width;
       }, 0);
