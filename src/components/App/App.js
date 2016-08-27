@@ -320,7 +320,7 @@ export default class App extends Component {
               zoom: 1,
               left: 0,
               top: 0,
-              contentWidth: imageElements.reduce((total, {width}) => total + width, 0),
+              contentWidth: imageElements.reduce((total, {width, height}) => total + node.clientHeight * width / height, 0),
               contentHeight: node.clientHeight
             };
           }}>
