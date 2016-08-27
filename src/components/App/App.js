@@ -68,12 +68,38 @@ export default class App extends Component {
     }, false);
 
     canvas.addEventListener('dblclick', event => {
-      this.zoom(event.shiftKey ? -1 : 1);
+      const {
+        ctx,
+        contentHeight,
+        contentWidth,
+        zoom
+      } = this.canvas;
+      const lastX = event.offsetX || (event.pageX - canvas.offsetLeft);
+      const lastY = event.offsetY || (event.pageY - canvas.offsetTop);
+      const minZoom = 1;
+      const maxZoom = 2;
+      const pt = ctx.transformedPoint(lastX, lastY);
+      const factor = zoom === minZoom ? maxZoom : 1 / maxZoom;
+
+      this.canvas.lastX = lastX;
+      this.canvas.lastY = lastY;
+      this.canvas.contentHeight = contentHeight * factor;
+      this.canvas.contentWidth = contentWidth * factor;
+      this.canvas.zoom = zoom === minZoom ? maxZoom : minZoom;
+      // ctx.translate(pt.x, pt.y);
+      ctx.scale(factor, factor);
+      // ctx.translate(-pt.x, -pt.y);
+      this.redraw();
     }, false);
 
     canvas.addEventListener('wheel', (event) => {
+      this.canvas.dragged = true;
       this.canvas.ctx.translate(event.wheelDeltaX / 4, event.wheelDeltaY / 4);
       this.redraw();
+    }, false);
+
+    window.addEventListener('keyup', () => {
+      console.log(this.canvas);
     }, false);
 
     this.trackTransforms();
@@ -97,7 +123,7 @@ export default class App extends Component {
 
       ctx.clearRect(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
       images.map((image, index) => {
-        ctx.drawImage(image, index * 1000, 0);
+        ctx.drawImage(image, index * height, 0, height, height);
       });
     }
   }
@@ -158,15 +184,15 @@ export default class App extends Component {
         top: top + dy
       };
 
-      console.log(dragged, [left, next.left], [top, next.top]);
+      console.log(dragged, left, next.left, top, next.top);
 
-      if (dragged && next.left <= 0 && next.left >= zoom * (width - contentWidth)) {
+      if (dragged && next.left <= 0 && next.left >= (width - contentWidth) / zoom) {
         this.canvas.left = next.left;
         xform = xform.translate(dx, 0);
         translate.call(ctx, dx, 0);
       }
 
-      if (dragged && next.top <= 0 && next.top >= zoom * (height - contentHeight)) {
+      if (dragged && next.top <= 0 && next.top >= (height - contentHeight) / zoom) {
         this.canvas.top = next.top;
         xform = xform.translate(0, dy);
         translate.call(ctx, 0, dy);
@@ -211,25 +237,6 @@ export default class App extends Component {
     };
   }
 
-  zoom() {
-    const {
-      ctx,
-      lastX,
-      lastY,
-      zoom
-    } = this.canvas;
-    const minZoom = 1;
-    const maxZoom = 2;
-    const pt = ctx.transformedPoint(lastX, lastY);
-    const factor = zoom === minZoom ? maxZoom : 1 / maxZoom;
-
-    this.canvas.zoom = zoom === minZoom ? maxZoom : minZoom;
-    ctx.translate(pt.x, pt.y);
-    ctx.scale(factor, factor);
-    ctx.translate(-pt.x, -pt.y);
-    this.redraw();
-  }
-
   componentDidMount() {
     window.addEventListener('load', () => {
       this.kickOut();
@@ -242,6 +249,8 @@ export default class App extends Component {
         <canvas
           className={styles.canvas}
           ref={node => {
+            const imageWidth = 1000 * node.clientHeight / 1000;
+
             this.canvas = {
               canvas: node,
               ctx: node.getContext('2d'),
@@ -250,8 +259,8 @@ export default class App extends Component {
               zoom: 1,
               top: 0,
               left: 0,
-              contentWidth: this.state.images.length * 1000,
-              contentHeight: 1000
+              contentWidth: this.state.images.length * imageWidth,
+              contentHeight: node.clientHeight
             };
           }}>
           YAYAY!
