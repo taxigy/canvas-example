@@ -27,8 +27,8 @@ export default class App extends Component {
     const {
       canvas,
       ctx,
-      height,
       width,
+      height
     } = this.canvas;
 
     this.canvas.lastX = canvas.width / 2;
@@ -70,8 +70,8 @@ export default class App extends Component {
     canvas.addEventListener('dblclick', event => {
       const {
         ctx,
-        contentHeight,
         contentWidth,
+        contentHeight,
         zoom
       } = this.canvas;
       const lastX = event.offsetX || (event.pageX - canvas.offsetLeft);
@@ -83,8 +83,8 @@ export default class App extends Component {
 
       this.canvas.lastX = lastX;
       this.canvas.lastY = lastY;
-      this.canvas.contentHeight = contentHeight * factor;
       this.canvas.contentWidth = contentWidth * factor;
+      this.canvas.contentHeight = contentHeight * factor;
       this.canvas.zoom = zoom === minZoom ? maxZoom : minZoom;
       // ctx.translate(pt.x, pt.y);
       ctx.scale(factor, factor);
@@ -98,10 +98,6 @@ export default class App extends Component {
       this.redraw();
     }, false);
 
-    window.addEventListener('keyup', () => {
-      console.log(this.canvas);
-    }, false);
-
     this.trackTransforms();
     this.redraw();
   }
@@ -110,8 +106,8 @@ export default class App extends Component {
     const {
       canvas,
       ctx,
-      height,
-      width
+      width,
+      height
     } = this.canvas;
 
     if (canvas && ctx) {
@@ -184,8 +180,6 @@ export default class App extends Component {
         top: top + dy
       };
 
-      console.log(dragged, left, next.left, top, next.top);
-
       if (dragged && next.left <= 0 && next.left >= (width - contentWidth) / zoom) {
         this.canvas.left = next.left;
         xform = xform.translate(dx, 0);
@@ -254,11 +248,11 @@ export default class App extends Component {
             this.canvas = {
               canvas: node,
               ctx: node.getContext('2d'),
-              height: node.clientHeight,
               width: node.clientWidth,
+              height: node.clientHeight,
               zoom: 1,
-              top: 0,
               left: 0,
+              top: 0,
               contentWidth: this.state.images.length * imageWidth,
               contentHeight: node.clientHeight
             };
