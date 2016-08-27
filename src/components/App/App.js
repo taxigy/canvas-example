@@ -86,9 +86,25 @@ export default class App extends Component {
       this.canvas.contentWidth = contentWidth * factor;
       this.canvas.contentHeight = contentHeight * factor;
       this.canvas.zoom = zoom === minZoom ? maxZoom : minZoom;
-      // ctx.translate(pt.x, pt.y);
+      ctx.translate(pt.x, pt.y);
       ctx.scale(factor, factor);
-      // ctx.translate(-pt.x, -pt.y);
+      ctx.translate(-pt.x, -pt.y);
+
+      const {
+        e: nextX,
+        f: nextY
+      } = ctx.getTransform();
+
+      if (nextX > 0) {
+        ctx.translate(-nextX, 0);
+      }
+
+      if (nextY > 0) {
+        ctx.translate(0, -nextY);
+      }
+
+      console.log(ctx.getTransform().e, ctx.getTransform().f);
+
       this.redraw();
     }, false);
 
@@ -235,6 +251,8 @@ export default class App extends Component {
     window.addEventListener('load', () => {
       this.kickOut();
     });
+
+    window.cc = this.canvas;
   }
 
   render() {
