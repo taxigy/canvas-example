@@ -16,7 +16,7 @@ import App from 'components/App/App';
 export default render((
   <Provider store={store}>
     <Router history={browserHistory}>
-      <Route path="/" component={App} />
+      <Route path="*" component={App} />
     </Router>
   </Provider>
 ), document.getElementById('app'));
