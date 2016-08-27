@@ -4,23 +4,32 @@ import React, { Component } from 'react';
 // } from 'fabric';
 import styles from './App.scss';
 
+const DEBUG_IMAGES = [{
+  url: 'https://placeholdit.imgix.net/~text?txtsize=75&txt=1000x800&w=1000&h=800',
+  width: 1000,
+  height: 800
+}, {
+  url: 'https://placeholdit.imgix.net/~text?txtsize=75&txt=900x1000&w=900&h=1000',
+  width: 900,
+  height: 1000
+}, {
+  url: 'https://placeholdit.imgix.net/~text?txtsize=75&txt=800x800&w=800&h=800',
+  width: 800,
+  height: 800
+}, {
+  url: 'https://placeholdit.imgix.net/~text?txtsize=75&txt=700x1000&w=700&h=1000',
+  width: 700,
+  height: 1000
+}, {
+  url: 'https://placeholdit.imgix.net/~text?txtsize=75&txt=601x602&w=601&h=602',
+  width: 601,
+  height: 602
+}];
+
 export default class App extends Component {
   constructor() {
     super();
     this.canvas = {};
-    this.state = {
-      images: [
-        'https://placeholdit.imgix.net/~text?txtsize=75&txt=1000x1000&w=1000&h=1000',
-        'https://placeholdit.imgix.net/~text?txtsize=75&txt=900x900&w=900&h=900',
-        'https://placeholdit.imgix.net/~text?txtsize=75&txt=800x800&w=800&h=800',
-        'https://placeholdit.imgix.net/~text?txtsize=75&txt=700x700&w=700&h=700',
-        'https://placeholdit.imgix.net/~text?txtsize=75&txt=600x600&w=600&h=600'
-      ].map(url => {
-        const image = new Image;
-        image.src = url;
-        return image;
-      })
-    };
   }
 
   kickOut() {
@@ -90,20 +99,28 @@ export default class App extends Component {
       ctx.scale(factor, factor);
       ctx.translate(-pt.x, -pt.y);
 
+      // And now goes compensation. It relies on current state of transform in CanvasRenderingContext2D and it is just crazy.
       const {
+        a: zoomX,
+        d: zoomY,
         e: nextX,
         f: nextY
       } = ctx.getTransform();
 
       if (nextX > 0) {
         ctx.translate(-nextX, 0);
+      } else if (nextX < width - this.canvas.contentWidth) {
+        ctx.translate(nextX - width + this.canvas.contentWidth, 0);
       }
 
       if (nextY > 0) {
         ctx.translate(0, -nextY);
+      } else if (nextY < height - this.canvas.contentHeight) {
+        ctx.translate(0, -nextY - height + this.canvas.contentHeight);
       }
 
-      console.log(ctx.getTransform().e, ctx.getTransform().f);
+      this.canvas.left = nextX / zoomX;
+      this.canvas.top = nextY / zoomY;
 
       this.redraw();
     }, false);
@@ -121,22 +138,40 @@ export default class App extends Component {
   redraw() {
     const {
       canvas,
-      ctx,
-      width,
-      height
+      ctx
     } = this.canvas;
 
     if (canvas && ctx) {
       const {
-        images = []
-      } = this.state;
+        images = DEBUG_IMAGES
+      } = this.props;
+      const imageElements = images.map(({url, width, height}) => {
+        const image = new Image;
+        image.src = url;
+        image.height = height;
+        image.width = width;
+
+        return {
+          image,
+          height,
+          width
+        };
+      });
       const p1 = ctx.transformedPoint(0, 0);
-      const p2 = ctx.transformedPoint(width, height);
+      const p2 = ctx.transformedPoint(this.canvas.width, this.canvas.height);
 
       ctx.clearRect(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
-      images.map((image, index) => {
-        ctx.drawImage(image, index * height, 0, height, height);
-      });
+      imageElements.reduce((total, {image, height, width}) => {
+        const next = {
+          width: this.canvas.height * width / height,
+          height: this.canvas.height
+        };
+
+        ctx.drawImage(image, total, 0, next.width, next.height);
+        console.log(width, next.width, total);
+
+        return total + next.width;
+      }, 0);
     }
   }
 
@@ -256,13 +291,27 @@ export default class App extends Component {
   }
 
   render() {
+    const {
+      images = DEBUG_IMAGES
+    } = this.props;
+    const imageElements = images.map(({url, width, height}) => {
+      const image = new Image;
+      image.src = url;
+      image.height = height;
+      image.width = width;
+
+      return {
+        image,
+        height,
+        width
+      };
+    });
+
     return (
       <div className={styles.app}>
         <canvas
           className={styles.canvas}
           ref={node => {
-            const imageWidth = 1000 * node.clientHeight / 1000;
-
             this.canvas = {
               canvas: node,
               ctx: node.getContext('2d'),
@@ -271,7 +320,7 @@ export default class App extends Component {
               zoom: 1,
               left: 0,
               top: 0,
-              contentWidth: this.state.images.length * imageWidth,
+              contentWidth: imageElements.reduce((total, {width}) => total + width, 0),
               contentHeight: node.clientHeight
             };
           }}>
